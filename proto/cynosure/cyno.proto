@@ -1,0 +1,325 @@
+syntax = "proto3";
+
+package cynosure;
+
+import "protoc-gen-swagger/options/annotations.proto";
+import "google/api/annotations.proto";
+
+option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
+	info: {
+		version: "1.0";
+	};
+	external_docs: {
+		url: "https://github.com/norganna/cynosure";
+		description: "Cynosure GitHub repository";
+	}
+	schemes: HTTPS;
+};
+
+
+// API service for the cynosure RPC server.
+service API {
+	// Running will ```return``` a list of running processes that match the requested filter (or all).
+	rpc Running (RunningRequest) returns (RunningResponse) {
+		option (google.api.http) = {
+			get: "/v1/running"
+			additional_bindings {
+				post: "/v1/running"
+				body: "*"
+			}
+		};
+	}
+
+	// Info provides information about a specific process.
+	rpc Info (InfoRequest) returns (InfoResponse) {
+		option (google.api.http) = {
+			get: "/v1/info/{identifier}"
+		};
+	}
+
+	// Logs returns log lines from the specified process.
+	rpc Logs (LogsRequest) returns (LogsResponse) {
+		option (google.api.http) = {
+			get: "/v1/logs/{identifier}"
+		};
+	}
+
+	// Start creates a new process from the given request.
+	rpc Start (StartRequest) returns (StartResponse) {
+		option (google.api.http) = {
+		   post: "/v1/start"
+		   body: "command"
+	   };
+	}
+
+	// Stop terminates a specified process.
+	rpc Stop (StopRequest) returns (StopResponse) {
+		option (google.api.http) = {
+			delete: "/v1/stop/{identifier}"
+		};
+	}
+
+	// Environment allows setting default environment values for all processes started in the specified namespace.
+	rpc Environment (EnvironmentRequest) returns (EnvironmentResponse) {
+		option (google.api.http) = {
+			post: "/v1/environment/{name}"
+			body: "*"
+		};
+	}
+
+	rpc Image (ImageRequest) returns (ImageResponse) {
+		option (google.api.http) = {
+			get: "/v1/image/{identity}"
+			additional_bindings {
+				post: "/v1/image/{identity}"
+				body: "image"
+			}
+		};
+	}
+}
+
+// RunningRequest is the input supplied to the `Running` API endpoint.
+message RunningRequest {
+	// Filters allow limiting the processes returned by this call (default = all).
+	repeated Filter filters = 1;
+}
+
+// RunningResponse is the output supplied by the `Running` API endpoint.
+message RunningResponse {
+	// Processes contains the running processes that matched the request `Filter`.
+	repeated Process processes = 1;
+}
+
+// InfoRequest is the input supplied to the `Info` API endpoint.
+message InfoRequest {
+	// Identifier of the process that should be interrogated.
+	string identifier = 1;
+}
+
+// InfoResponse is the output supplied by the `Info` API endpoint.
+message InfoResponse {
+	// Process contains the running process that matched the identifier.
+	Process process = 1;
+}
+
+// LogsRequest is the input supplied to the `Logs` API endpoint.
+message LogsRequest {
+	// Identifier of the process to get the logs for.
+	string identifier = 1;
+
+	// Head returns the top **N** log lines.
+	int64 head = 10;
+	// Tail returns the bottom **N** log lines.
+	int64 tail = 11;
+	// Since returns all log lines since the given UTC timestamp.
+	//
+	// Typically you will use the value from the previous `LogsResponse.Continue` field.
+	string since = 12;
+}
+
+// LogsResponse is the output supplied by the `Logs` API endpoint.
+message LogsResponse {
+	// Entries of the log as per the request
+	repeated LogEntry entries = 1;
+	// Count is the total number of log entries over the life of the process.
+	int64 count = 2;
+	// Continue can be provided as `LogRequest.Since` value to subsequent requests for log tailing.
+	string continue = 3;
+}
+
+// StartRequest is the input supplied to the `Start` API endpoint.
+message StartRequest {
+	// Command to run.
+	Command command = 1;
+	// Namespace to run the command in.
+	string namespace = 2;
+	// Labels to assign to the process (allows filtering of processes).
+	repeated KV labels = 3;
+
+	// Environments to run the command in (stacks environment variables).
+	repeated string environments = 5;
+
+	// Watches allow observation of key log entries and changing the process ready state.
+	map<string, Watch> watches = 10;
+}
+
+// StartResponse is the output supplied by the `Start` API endpoint.
+message StartResponse {
+	// Process contains the details of the process that was started.
+	Process process = 1;
+}
+
+// StopRequest is the input supplied to the `Stop` API endpoint.
+message StopRequest {
+	// Identifier of the process to terminate.
+	string identifier = 1;
+}
+
+// StopResponse is the output supplied by the `Stop` API endpoint.
+message StopResponse {
+	// Success of the stop request.
+	bool success = 1;
+}
+
+// EnvironmentRequest is the input supplied to the `Environment` API endpoint.
+message EnvironmentRequest {
+	// Name of the environment.
+	string name = 1;
+
+	// Values to provide for the namespace (`key=value`).
+	repeated string values = 2;
+}
+
+// EnvironmentResponse is the output supplied by the `Environment` API endpoint.
+message EnvironmentResponse {
+	// Success of the environment request.
+	bool success = 1;
+}
+
+// ImageRequest is the input supplied to the `Image` API endpoint.
+message ImageRequest {
+	// Identity of this image.
+	string identity = 1;
+
+	// Image data (a tar.gz of the file system), if supplied creates the stored image.
+	bytes image = 2;
+}
+
+// ImageResponse is the output supplied by the `Image` API endpoint.
+message ImageResponse {
+	// Exists if the image exists in the system.
+	bool exists = 1;
+
+	// Success if the image was created.
+	bool success = 2;
+}
+
+// Command contains command information used to start a process and return information about a running command.
+message Command {
+	// Name will be used as the prefix for the identifier.
+	string name = 1;
+
+	// Image is the uploaded image file to use as the filesystem.
+	string image = 10;
+	// Entry is the command to execute as the entry-point.
+	string entry = 11;
+	// Args are supplied to the executable.
+	repeated string args = 12;
+	// Env provides extra environment variables.
+	repeated string env = 13;
+	// Requirements is a set of dependencies to be met before the command will be run.
+	map<string, Deps> requirements = 14;
+
+	// Lines is the number of log entries that have been produced (read-only).
+	int64 lines = 50;
+}
+
+// Dep contains dependency requirements.
+message Dep {
+	// Identity of the broker to use, defined within the server configuration.
+	string identity = 1;
+
+	// Wait is the thing to wait for, how it is interpreted/found is up to the provider.
+	string wait = 10;
+}
+
+// Deps is a list of Dep entries, any of which can fulfil the requirement.
+message Deps {
+	// Deps is the list of `Dep` items.
+	repeated Dep deps = 1;
+}
+
+// Filter expresses how to match a `Process`.
+message Filter {
+	// Type is the kind of thing to match on.
+	enum Type {
+		// Namespace matches on the namespace of the process.
+		Namespace = 0;
+		// Label matches on a label used to start a process (requires a `Filter.Key`).
+		Label = 1;
+	}
+
+	enum Op {
+		// In requires that at least one of the values match.
+		In = 0;
+		// NotIn requires that none of the values are found.
+		NotIn = 1;
+	}
+
+	// Type of value to filter on.
+	Type type = 1;
+	// Op is the matching type.
+	Op op = 2;
+	// Values to match.
+	repeated string values = 3;
+
+	// Key to match on (type dependant).
+	string key = 10;
+}
+
+// KV is a simple key/value pair.
+message KV {
+	// Key of the value.
+	string key = 1;
+	// Value of the key.
+	string value = 2;
+}
+
+// LogEntry of a log line from a process.
+message LogEntry {
+	// Pos provides the line number for the log entry (starts at 1).
+	int64 pos = 1;
+	// Time that the log entry was processed.
+	string time = 2;
+	// Source of the log entry (`out`, `err`, `debug`, `info`, `warning`, `error`, `fatal`, etc).
+	string source = 3;
+	// Raw contents of the log line.
+	string raw = 4;
+
+	// Message that was parsed out of the raw log line.
+	string message = 10;
+	// Fields that were parsed out of the raw log line.
+	string fields = 11;
+}
+
+// Process information to create a new process or return from a running process.
+message Process {
+	// Identifier is the unique ID that is assigned to this instance of the command.
+	string identifier = 1;
+	// Namespace that the process is running in.
+	string namespace = 2;
+
+	// Pid is the process ID of the command.
+	int32 pid = 10;
+	// Started time in milliseconds since epoch that the current PID started.
+	int64 started = 11;
+	// Running duration in milliseconds that the process has been running.
+	int64 running = 12;
+	// Ready is whether the process thinks it's ready (determined by watches on start).
+	bool ready = 13;
+
+	// Command to run (or that is running)
+	Command command = 20;
+	// Ports that are open (TCP/UDP for listening) by the process.
+	repeated string ports = 21;
+	// Observations that have been made by the `StartRequest.Watches` (which are supplied at start-up).
+	map<string, string> observations = 22;
+}
+
+// Watch items enable observation of log lines and keep track of running state.
+message Watch {
+	// State changes.
+	enum State {
+		// Unchanged does not change the state of the process (default).
+		Unchanged = 0;
+		// MakeReady changes the process state to ready, if not currently not-ready.
+		MakeReady = 1;
+		// NotReady changes the process state to not-ready, if currently ready.
+		NotReady = 2;
+	}
+
+	// Match is a string to find in the output that triggers this watch.
+	string match = 1;
+	// State determines whether this match will make the app ready, not, or do nothing.
+	State state = 2;
+}

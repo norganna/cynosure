@@ -1,0 +1,653 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "cyno.proto",
+    "version": "1.0"
+  },
+  "schemes": [
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/environment/{name}": {
+      "post": {
+        "summary": "Environment allows setting default environment values for all processes started in the specified namespace.",
+        "operationId": "Environment",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cynosureEnvironmentResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "Name of the environment.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cynosureEnvironmentRequest"
+            }
+          }
+        ],
+        "tags": [
+          "API"
+        ]
+      }
+    },
+    "/v1/image/{identity}": {
+      "get": {
+        "operationId": "Image",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cynosureImageResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "identity",
+            "description": "Identity of this image.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "image",
+            "description": "Image data (a tar.gz of the file system), if supplied creates the stored image.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "byte"
+          }
+        ],
+        "tags": [
+          "API"
+        ]
+      },
+      "post": {
+        "operationId": "Image2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cynosureImageResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "identity",
+            "description": "Identity of this image.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "description": "Image data (a tar.gz of the file system), if supplied creates the stored image.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "byte"
+            }
+          }
+        ],
+        "tags": [
+          "API"
+        ]
+      }
+    },
+    "/v1/info/{identifier}": {
+      "get": {
+        "summary": "Info provides information about a specific process.",
+        "operationId": "Info",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cynosureInfoResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "identifier",
+            "description": "Identifier of the process that should be interrogated.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "API"
+        ]
+      }
+    },
+    "/v1/logs/{identifier}": {
+      "get": {
+        "summary": "Logs returns log lines from the specified process.",
+        "operationId": "Logs",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cynosureLogsResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "identifier",
+            "description": "Identifier of the process to get the logs for.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "head",
+            "description": "Head returns the top **N** log lines.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "tail",
+            "description": "Tail returns the bottom **N** log lines.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "since",
+            "description": "Since returns all log lines since the given UTC timestamp.\n\nTypically you will use the value from the previous `LogsResponse.Continue` field.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "API"
+        ]
+      }
+    },
+    "/v1/running": {
+      "get": {
+        "summary": "Running will ```return``` a list of running processes that match the requested filter (or all).",
+        "operationId": "Running",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cynosureRunningResponse"
+            }
+          }
+        },
+        "tags": [
+          "API"
+        ]
+      },
+      "post": {
+        "summary": "Running will ```return``` a list of running processes that match the requested filter (or all).",
+        "operationId": "Running2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cynosureRunningResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cynosureRunningRequest"
+            }
+          }
+        ],
+        "tags": [
+          "API"
+        ]
+      }
+    },
+    "/v1/start": {
+      "post": {
+        "summary": "Start creates a new process from the given request.",
+        "operationId": "Start",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cynosureStartResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "Command to run.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/cynosureCommand"
+            }
+          }
+        ],
+        "tags": [
+          "API"
+        ]
+      }
+    },
+    "/v1/stop/{identifier}": {
+      "delete": {
+        "summary": "Stop terminates a specified process.",
+        "operationId": "Stop",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/cynosureStopResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "identifier",
+            "description": "Identifier of the process to terminate.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "API"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "FilterOp": {
+      "type": "string",
+      "enum": [
+        "In",
+        "NotIn"
+      ],
+      "default": "In",
+      "description": " - In: In requires that at least one of the values match.\n - NotIn: NotIn requires that none of the values are found."
+    },
+    "WatchState": {
+      "type": "string",
+      "enum": [
+        "Unchanged",
+        "MakeReady",
+        "NotReady"
+      ],
+      "default": "Unchanged",
+      "description": "State changes.\n\n - Unchanged: Unchanged does not change the state of the process (default).\n - MakeReady: MakeReady changes the process state to ready, if not currently not-ready.\n - NotReady: NotReady changes the process state to not-ready, if currently ready."
+    },
+    "cynosureCommand": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name will be used as the prefix for the identifier."
+        },
+        "image": {
+          "type": "string",
+          "description": "Image is the uploaded image file to use as the filesystem."
+        },
+        "entry": {
+          "type": "string",
+          "description": "Entry is the command to execute as the entry-point."
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Args are supplied to the executable."
+        },
+        "env": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Env provides extra environment variables."
+        },
+        "requirements": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/cynosureDeps"
+          },
+          "description": "Requirements is a set of dependencies to be met before the command will be run."
+        },
+        "lines": {
+          "type": "string",
+          "format": "int64",
+          "description": "Lines is the number of log entries that have been produced (read-only)."
+        }
+      },
+      "description": "Command contains command information used to start a process and return information about a running command."
+    },
+    "cynosureDep": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "type": "string",
+          "description": "Identity of the broker to use, defined within the server configuration."
+        },
+        "wait": {
+          "type": "string",
+          "description": "Wait is the thing to wait for, how it is interpreted/found is up to the provider."
+        }
+      },
+      "description": "Dep contains dependency requirements."
+    },
+    "cynosureDeps": {
+      "type": "object",
+      "properties": {
+        "deps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cynosureDep"
+          },
+          "description": "Deps is the list of `Dep` items."
+        }
+      },
+      "description": "Deps is a list of Dep entries, any of which can fulfil the requirement."
+    },
+    "cynosureEnvironmentRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the environment."
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Values to provide for the namespace (`key=value`)."
+        }
+      },
+      "description": "EnvironmentRequest is the input supplied to the `Environment` API endpoint."
+    },
+    "cynosureEnvironmentResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Success of the environment request."
+        }
+      },
+      "description": "EnvironmentResponse is the output supplied by the `Environment` API endpoint."
+    },
+    "cynosureFilter": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/cynosureFilterType",
+          "description": "Type of value to filter on."
+        },
+        "op": {
+          "$ref": "#/definitions/FilterOp",
+          "description": "Op is the matching type."
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Values to match."
+        },
+        "key": {
+          "type": "string",
+          "description": "Key to match on (type dependant)."
+        }
+      },
+      "description": "Filter expresses how to match a `Process`."
+    },
+    "cynosureFilterType": {
+      "type": "string",
+      "enum": [
+        "Namespace",
+        "Label"
+      ],
+      "default": "Namespace",
+      "description": "Type is the kind of thing to match on.\n\n - Namespace: Namespace matches on the namespace of the process.\n - Label: Label matches on a label used to start a process (requires a `Filter.Key`)."
+    },
+    "cynosureImageResponse": {
+      "type": "object",
+      "properties": {
+        "exists": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Exists if the image exists in the system."
+        },
+        "success": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Success if the image was created."
+        }
+      },
+      "description": "ImageResponse is the output supplied by the `Image` API endpoint."
+    },
+    "cynosureInfoResponse": {
+      "type": "object",
+      "properties": {
+        "process": {
+          "$ref": "#/definitions/cynosureProcess",
+          "description": "Process contains the running process that matched the identifier."
+        }
+      },
+      "description": "InfoResponse is the output supplied by the `Info` API endpoint."
+    },
+    "cynosureKV": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "Key of the value."
+        },
+        "value": {
+          "type": "string",
+          "description": "Value of the key."
+        }
+      },
+      "description": "KV is a simple key/value pair."
+    },
+    "cynosureLogEntry": {
+      "type": "object",
+      "properties": {
+        "pos": {
+          "type": "string",
+          "format": "int64",
+          "description": "Pos provides the line number for the log entry (starts at 1)."
+        },
+        "time": {
+          "type": "string",
+          "description": "Time that the log entry was processed."
+        },
+        "source": {
+          "type": "string",
+          "description": "Source of the log entry (`out`, `err`, `debug`, `info`, `warning`, `error`, `fatal`, etc)."
+        },
+        "raw": {
+          "type": "string",
+          "description": "Raw contents of the log line."
+        },
+        "message": {
+          "type": "string",
+          "description": "Message that was parsed out of the raw log line."
+        },
+        "fields": {
+          "type": "string",
+          "description": "Fields that were parsed out of the raw log line."
+        }
+      },
+      "description": "LogEntry of a log line from a process."
+    },
+    "cynosureLogsResponse": {
+      "type": "object",
+      "properties": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cynosureLogEntry"
+          },
+          "title": "Entries of the log as per the request"
+        },
+        "count": {
+          "type": "string",
+          "format": "int64",
+          "description": "Count is the total number of log entries over the life of the process."
+        },
+        "continue": {
+          "type": "string",
+          "description": "Continue can be provided as `LogRequest.Since` value to subsequent requests for log tailing."
+        }
+      },
+      "description": "LogsResponse is the output supplied by the `Logs` API endpoint."
+    },
+    "cynosureProcess": {
+      "type": "object",
+      "properties": {
+        "identifier": {
+          "type": "string",
+          "description": "Identifier is the unique ID that is assigned to this instance of the command."
+        },
+        "namespace": {
+          "type": "string",
+          "description": "Namespace that the process is running in."
+        },
+        "pid": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Pid is the process ID of the command."
+        },
+        "started": {
+          "type": "string",
+          "format": "int64",
+          "description": "Started time in milliseconds since epoch that the current PID started."
+        },
+        "running": {
+          "type": "string",
+          "format": "int64",
+          "description": "Running duration in milliseconds that the process has been running."
+        },
+        "ready": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Ready is whether the process thinks it's ready (determined by watches on start)."
+        },
+        "command": {
+          "$ref": "#/definitions/cynosureCommand",
+          "title": "Command to run (or that is running)"
+        },
+        "ports": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Ports that are open (TCP/UDP for listening) by the process."
+        },
+        "observations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Observations that have been made by the `StartRequest.Watches` (which are supplied at start-up)."
+        }
+      },
+      "description": "Process information to create a new process or return from a running process."
+    },
+    "cynosureRunningRequest": {
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cynosureFilter"
+          },
+          "description": "Filters allow limiting the processes returned by this call (default = all)."
+        }
+      },
+      "description": "RunningRequest is the input supplied to the `Running` API endpoint."
+    },
+    "cynosureRunningResponse": {
+      "type": "object",
+      "properties": {
+        "processes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/cynosureProcess"
+          },
+          "description": "Processes contains the running processes that matched the request `Filter`."
+        }
+      },
+      "description": "RunningResponse is the output supplied by the `Running` API endpoint."
+    },
+    "cynosureStartResponse": {
+      "type": "object",
+      "properties": {
+        "process": {
+          "$ref": "#/definitions/cynosureProcess",
+          "description": "Process contains the details of the process that was started."
+        }
+      },
+      "description": "StartResponse is the output supplied by the `Start` API endpoint."
+    },
+    "cynosureStopResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "format": "boolean",
+          "description": "Success of the stop request."
+        }
+      },
+      "description": "StopResponse is the output supplied by the `Stop` API endpoint."
+    },
+    "cynosureWatch": {
+      "type": "object",
+      "properties": {
+        "match": {
+          "type": "string",
+          "description": "Match is a string to find in the output that triggers this watch."
+        },
+        "state": {
+          "$ref": "#/definitions/WatchState",
+          "description": "State determines whether this match will make the app ready, not, or do nothing."
+        }
+      },
+      "description": "Watch items enable observation of log lines and keep track of running state."
+    }
+  },
+  "externalDocs": {
+    "description": "Cynosure GitHub repository",
+    "url": "https://github.com/norganna/cynosure"
+  }
+}
